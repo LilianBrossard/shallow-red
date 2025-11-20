@@ -25,14 +25,14 @@ const getPieceValue = (type: PieceType) => PIECE_VALUES[type];
 // Higher values = better position.
 
 const pawnPST = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [50, 50, 50, 50, 50, 50, 50, 50], // Rank 8 (Promotion) - Handled by material change usually, but good to have high PST
-  [10, 10, 20, 30, 30, 20, 10, 10], // Rank 7
-  [5, 5, 10, 80, 80, 10, 5, 5], // Rank 6
-  [0, 0, 0, 60, 60, 0, 0, 0], // Rank 5
-  [5, -5, -10, 20, 20, -10, -5, 5], // Rank 4
-  [5, 10, 10, -40, -40, 10, 10, 5], // Rank 3
+  [30, 30, 45, 60, 60, 45, 30, 30], // Rank 8 (Promotion)
+  [25, 25, 38, 50, 50, 38, 25, 25], // Rank 7
+  [20, 20, 30, 40, 40, 30, 20, 20], // Rank 6
+  [15, 15, 23, 30, 30, 23, 15, 15], // Rank 5
+  [10, 10, 15, 20, 20, 15, 10, 10], // Rank 4
+  [5, 5, 8, 10, 10, 8, 5, 5], // Rank 3
   [0, 0, 0, 0, 0, 0, 0, 0], // Rank 2
+  [0, 0, 0, 0, 0, 0, 0, 0], // Rank 1
 ];
 
 const knightPST = [

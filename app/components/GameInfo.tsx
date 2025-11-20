@@ -10,10 +10,14 @@ interface GameInfoProps {
 }
 
 export default function GameInfo({ history, capturedPieces }: GameInfoProps) {
+  const historyContainerRef = useRef<HTMLDivElement>(null);
   const historyEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    historyEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (historyContainerRef.current) {
+      historyContainerRef.current.scrollTop =
+        historyContainerRef.current.scrollHeight;
+    }
   }, [history]);
 
   return (
@@ -54,7 +58,10 @@ export default function GameInfo({ history, capturedPieces }: GameInfoProps) {
         <h3 className="font-bold text-[#800020] border-b border-[#800020]/20 pb-2 mb-2">
           Historique
         </h3>
-        <div className="overflow-y-auto flex-1 pr-2 space-y-1 font-mono text-sm">
+        <div
+          ref={historyContainerRef}
+          className="overflow-y-auto flex-1 pr-2 space-y-1 font-mono text-sm"
+        >
           {(() => {
             const rows: React.ReactNode[] = [];
             for (let i = 0; i < history.length; i += 2) {
