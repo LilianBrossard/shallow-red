@@ -243,8 +243,11 @@ const getPieceDefenseScore = (board: Piece[], color: Color): number => {
   return score;
 };
 
-export const evaluateBoard = (board: Piece[], color: Color): number => {
-  let score = 0;
+export const getBoardScores = (
+  board: Piece[]
+): { white: number; black: number } => {
+  let whiteScore = 0;
+  let blackScore = 0;
 
   // Material & PST
   for (const piece of board) {
@@ -252,26 +255,35 @@ export const evaluateBoard = (board: Piece[], color: Color): number => {
     const pstValue = getPSTValue(piece, piece.position.row, piece.position.col);
     const totalValue = materialValue + pstValue;
 
-    if (piece.color === color) {
-      score += totalValue;
+    if (piece.color === "white") {
+      whiteScore += totalValue;
     } else {
-      score -= totalValue;
+      blackScore += totalValue;
     }
   }
 
   // King Safety
-  score += getKingSafetyScore(board, color);
-  score -= getKingSafetyScore(board, color === "white" ? "black" : "white");
+  whiteScore += getKingSafetyScore(board, "white");
+  blackScore += getKingSafetyScore(board, "black");
 
   // Piece Defense
-  score += getPieceDefenseScore(board, color);
-  score -= getPieceDefenseScore(board, color === "white" ? "black" : "white");
+  whiteScore += getPieceDefenseScore(board, "white");
+  blackScore += getPieceDefenseScore(board, "black");
 
   // Pawn Structure
-  score += getPawnStructureScore(board, color);
-  score -= getPawnStructureScore(board, color === "white" ? "black" : "white");
+  whiteScore += getPawnStructureScore(board, "white");
+  blackScore += getPawnStructureScore(board, "black");
 
-  return score;
+  return { white: whiteScore, black: blackScore };
+};
+
+export const evaluateBoard = (board: Piece[], color: Color): number => {
+  const scores = getBoardScores(board);
+  if (color === "white") {
+    return scores.white - scores.black;
+  } else {
+    return scores.black - scores.white;
+  }
 };
 
 export const getBestMove = (

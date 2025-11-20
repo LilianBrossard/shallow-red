@@ -55,37 +55,34 @@ export default function GameInfo({ history, capturedPieces }: GameInfoProps) {
           Historique
         </h3>
         <div className="overflow-y-auto flex-1 pr-2 space-y-1 font-mono text-sm">
-          {history.reduce((rows: React.ReactNode[], move, index) => {
-            if (index % 2 === 0) {
-              // White move
+          {(() => {
+            const rows: React.ReactNode[] = [];
+            for (let i = 0; i < history.length; i += 2) {
+              const whiteMove = history[i];
+              const blackMove = history[i + 1];
               rows.push(
                 <div
-                  key={index}
+                  key={i}
                   className="grid grid-cols-[30px_1fr_1fr] gap-2 py-1 hover:bg-gray-100 rounded px-1"
                 >
                   <span className="text-gray-500">
-                    {Math.floor(index / 2) + 1}.
+                    {Math.floor(i / 2) + 1}.
                   </span>
                   <span className="font-medium text-gray-800">
-                    {move.notation}
+                    {whiteMove.notation}
                   </span>
-                  {/* Placeholder for Black move if not yet made */}
-                  <span></span>
+                  {blackMove ? (
+                    <span className="font-medium text-gray-800">
+                      {blackMove.notation}
+                    </span>
+                  ) : (
+                    <span></span>
+                  )}
                 </div>
               );
-            } else {
-              // Black move - update the last row
-              const lastRow = rows[rows.length - 1] as React.ReactElement;
-              rows[rows.length - 1] = React.cloneElement(lastRow, {}, [
-                lastRow.props.children[0],
-                lastRow.props.children[1],
-                <span key="black" className="font-medium text-gray-800">
-                  {move.notation}
-                </span>,
-              ]);
             }
             return rows;
-          }, [])}
+          })()}
           <div ref={historyEndRef} />
         </div>
       </div>

@@ -2,29 +2,30 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Color } from "../types";
 
 interface EvaluationBarProps {
-  evaluation: number; // Positive for White advantage, Negative for Black
+  scores: { white: number; black: number };
+  playerColor: Color | null;
 }
 
-export default function EvaluationBar({ evaluation }: EvaluationBarProps) {
+export default function EvaluationBar({
+  scores,
+  playerColor,
+}: EvaluationBarProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Normalize evaluation to percentage (50% = 0 advantage)
-  // Max advantage capped at +/- 1000 (mate) or say +/- 20 pawn units
-  // Let's say 1 pawn = 10 units (from aiLogic).
-  // Range: -200 to +200?
-  // Let's clamp it.
-  const MAX_EVAL = 300; // 30 pawns advantage
-  const clampedEval = Math.max(-MAX_EVAL, Math.min(MAX_EVAL, evaluation));
+  const totalScore = Math.max(1, scores.white + scores.black); // Avoid division by zero
 
-  // White percentage:
-  // 0 eval -> 50%
-  // +300 eval -> 100%
-  // -300 eval -> 0%
-  const whitePercentage = Math.max(
-    0,
-    Math.min(100, ((clampedEval + MAX_EVAL) / (2 * MAX_EVAL)) * 100)
+  // Calculate percentage for the "active" color (bottom/left)
+  // If player is Black, we show Black's percentage from bottom/left.
+  // If player is White (or null), we show White's percentage from bottom/left.
+
+  const isInverted = playerColor === "black";
+  const relevantScore = isInverted ? scores.black : scores.white;
+  const percentage = Math.min(
+    100,
+    Math.max(0, (relevantScore / totalScore) * 100)
   );
 
   return (
@@ -47,30 +48,42 @@ export default function EvaluationBar({ evaluation }: EvaluationBarProps) {
             w-full h-6 flex-row rounded-md
             md:w-6 md:h-64 md:flex-col md:rounded-full"
         >
-          {/* Black Background is the container bg */}
+          {/* Container Background represents the OPPONENT's color (top/right) */}
+          {/* If inverted (Black player), background is White. If normal (White player), background is Black. */}
+          <div
+            className={`absolute inset-0 ${
+              isInverted ? "bg-white" : "bg-black"
+            }`}
+          ></div>
 
-          {/* White Bar */}
+          {/* Bar represents the PLAYER's color (bottom/left) */}
+          {/* If inverted (Black player), bar is Black. If normal (White player), bar is White. */}
+
           {/* Mobile: Horizontal (Width) */}
           <motion.div
-            className="block md:hidden h-full bg-white"
+            className={`block md:hidden h-full ${
+              isInverted ? "bg-black" : "bg-white"
+            }`}
             initial={{ width: "50%" }}
-            animate={{ width: `${whitePercentage}%` }}
+            animate={{ width: `${percentage}%` }}
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
           />
 
           {/* Desktop: Vertical (Height from bottom) */}
           <motion.div
-            className="hidden md:block w-full bg-white absolute bottom-0"
+            className={`hidden md:block w-full absolute bottom-0 ${
+              isInverted ? "bg-black" : "bg-white"
+            }`}
             initial={{ height: "50%" }}
-            animate={{ height: `${whitePercentage}%` }}
+            animate={{ height: `${percentage}%` }}
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
           />
 
           {/* Center Marker */}
           {/* Mobile: Vertical line */}
-          <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-gray-500/50 md:hidden"></div>
+          <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-gray-500/50 md:hidden mix-blend-difference"></div>
           {/* Desktop: Horizontal line */}
-          <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-500/50"></div>
+          <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-500/50 mix-blend-difference"></div>
         </div>
       )}
     </div>

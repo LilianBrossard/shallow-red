@@ -39,6 +39,7 @@ interface GameContextType {
   history: MoveHistoryItem[];
   capturedPieces: CapturedPieces;
   evaluation: number;
+  scores: { white: number; black: number };
   selectPiece: (piece: Piece) => void;
   deselectPiece: () => void;
   movePiece: (to: Position) => void;
@@ -65,6 +66,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     black: [],
   });
   const [evaluation, setEvaluation] = useState<number>(0);
+  const [scores, setScores] = useState<{ white: number; black: number }>({
+    white: 0,
+    black: 0,
+  });
 
   // Draw Rules State
   const [halfMoveClock, setHalfMoveClock] = useState<number>(0);
@@ -75,6 +80,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setPlayerColor(randomColor);
     // Initialize history with starting position
     setPositionHistory([boardToSignature(INITIAL_BOARD_STATE, "white")]);
+
+    // Initial score calculation
+    import("../utils/aiLogic").then(({ getBoardScores, evaluateBoard }) => {
+      setScores(getBoardScores(INITIAL_BOARD_STATE));
+      setEvaluation(evaluateBoard(INITIAL_BOARD_STATE, "white"));
+    });
   }, []);
 
   // AI Turn Effect
@@ -312,9 +323,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Update Evaluation
-    const { evaluateBoard } = await import("../utils/aiLogic");
+    const { evaluateBoard, getBoardScores } = await import("../utils/aiLogic");
     const score = evaluateBoard(newBoard, "white");
+    const boardScores = getBoardScores(newBoard);
     setEvaluation(score);
+    setScores(boardScores);
   };
 
   const promotePawn = (type: PieceType) => {
@@ -334,11 +347,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setHistory([]);
     setCapturedPieces({ white: [], black: [] });
     setEvaluation(0);
+    setScores({ white: 0, black: 0 }); // Reset scores
     setHalfMoveClock(0);
     setPositionHistory([boardToSignature(INITIAL_BOARD_STATE, "white")]);
 
     const randomColor = Math.random() < 0.5 ? "white" : "black";
     setPlayerColor(randomColor);
+
+    // Recalculate initial scores
+    import("../utils/aiLogic").then(({ getBoardScores, evaluateBoard }) => {
+      setScores(getBoardScores(INITIAL_BOARD_STATE));
+      setEvaluation(evaluateBoard(INITIAL_BOARD_STATE, "white"));
+    });
   };
 
   return (
@@ -356,6 +376,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         history,
         capturedPieces,
         evaluation,
+        scores, // Expose scores
         selectPiece,
         deselectPiece: () => {
           setSelectedPiece(null);
